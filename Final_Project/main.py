@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.spatial import Delaunay
+from scipy.sparse import dok_matrix
+
 
 def main():
     #Setting parameters
@@ -22,7 +24,41 @@ def main():
     #Creating a Delaunay triangulation with the points
     tri = Delaunay(points)
     plot(X,Y,tri)
+    A=assemble_stiffnes_matrix(tri).toarray()
     return 0
+
+def assemble_stiffness_matrix(tri):
+    X = tri.points[:,0]
+    Y = tri.points[:,1]
+    points = tri.points
+    Np = len(points)
+    #Define sparse matrix
+    A = dok_matrix((Np, Np), dtype=np.float32)
+
+    def int_grad_phi(i,j):
+        #phi_i=ai+bi*x+ci*y
+        #grad_phi_i=[bi,ci]^t
+        bi =  
+        if i==j:
+            return 0.
+        else : 
+            return 1.,1.
+
+    #Iterating through all the triangles
+    for triangle in tri.simplices:
+        #Getting indexes of points in triangle
+        [i,j,k] = triangle
+        #I think this is wrong! Fix!!!
+        #Start from integral of grad phi
+        A[i,i] = int_grad_phi(i,i)
+        A[j,j] = int_grad_phi(j,j)
+        A[k,k] = int_grad_phi(k,k)
+        A[i,j], A[j,i] = int_grad_phi(i,j)
+        A[i,k], A[k,i] = int_grad_phi(i,k)
+        A[j,k], A[k,j] = int_grad_phi(j,k)
+    return A
+
+
 
 def plot(X,Y,tri,Z='test'):
     if Z=='test':
