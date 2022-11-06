@@ -25,40 +25,45 @@ def main():
     tri = Delaunay(points)
     plot(X,Y,tri)
     A=assemble_stiffnes_matrix(tri).toarray()
+    b=assemble_load_vector(tri,1)
     return 0
 
 def assemble_stiffness_matrix(tri):
-    X = tri.points[:,0]
-    Y = tri.points[:,1]
     points = tri.points
     Np = len(points)
     #Define sparse matrix
     A = dok_matrix((Np, Np), dtype=np.float32)
 
-    def int_grad_phi(i,j):
+    def grad_phi(triangle):
+        #returns grad phi (over K) for phi corresponding to each
+        #point in the triangle K.
         #phi_i=ai+bi*x+ci*y
         #grad_phi_i=[bi,ci]^t
-        bi =  
-        if i==j:
-            return 0.
-        else : 
-            return 1.,1.
+        [i,j,k] = triangle
+        [xi,yi],[xj,yj],[xk,yk] = points[i],points[j],points[k]
+        twice_area=np.abs(xi*(yj-yk)+xj*(yk-yi)+xk*(yi-yj))
+        bi,ci=(yj-yk)/twice_area,(xk-xj)/twice_area
+        bj,cj=(yk-yi)/twice_area,(xi-xk)/twice_area
+        bk,ck=(yi-yj)/twice_area,(xj-xi)/twice_area
+        return [[bi,ci],[bj,cj],[bk,ck]],twice_area/2.
 
+    def int_prod_grad_phi(coeffs_i,coeffs_j,area):
+        bi,bj,ci,cj = coeffs_i[0],coeffs_j[0],coeffs_i[1],coeffs_j[1]
+        return (bi*bj+ci*cj)*area
+        
     #Iterating through all the triangles
     for triangle in tri.simplices:
         #Getting indexes of points in triangle
-        [i,j,k] = triangle
-        #I think this is wrong! Fix!!!
-        #Start from integral of grad phi
-        A[i,i] = int_grad_phi(i,i)
-        A[j,j] = int_grad_phi(j,j)
-        A[k,k] = int_grad_phi(k,k)
-        A[i,j], A[j,i] = int_grad_phi(i,j)
-        A[i,k], A[k,i] = int_grad_phi(i,k)
-        A[j,k], A[k,j] = int_grad_phi(j,k)
+        #[i,j,k] = triangle
+        coeffs,area = grad_phi(triangle)
+        for a in range(3):
+            for b in range(3):
+                i,j = triangle[a],triangle[b]
+                A[i,j] += int_prod_grad_phi(coeffs[i],coeffs[j],area) 
     return A
 
-
+def assemble_load_vector(tri,f):
+    return f
 
 def plot(X,Y,tri,Z='test'):
     if Z=='test':
