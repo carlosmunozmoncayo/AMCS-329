@@ -5,7 +5,7 @@ Final Project for AMCS-329 at KAUST: Finite Elements
 
 **Author:** *Me*
 
-The goal is to solve Poisson's equation \lambda(u)=f(u) over a simple domain.
+The goal is to solve Poisson's equation \lambda(u)=f(x) over a simple domain.
 For the moment I will assume Dirichlet boundary conditions and the mesh will
 be given a priori by some triangulation process (probably Delaunay).
 The method will be standard (continuous) FE without using an specialized
