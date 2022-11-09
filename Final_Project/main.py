@@ -1,53 +1,54 @@
 import numpy as np
 from scipy.spatial import Delaunay
 from scipy.sparse import dok_matrix
-
+#Use the finite element method to solve the Poisson problem lambda(u)=-f in 2D
+#For the moment considering P1 elements and homogeneous boundary conditions
 
 def main():
     #Setting parameters
     print("Defining domain...")
     #RHS function
-    f = lambda x,y : 2*(x**2+y**2)-4 #RHS of problem with sol. (-x**2+1)*(-y**2+1)
+    f = lambda x,y : -2*(x**2+y**2-2) #RHS of problem with sol. (-x**2+1)*(-y**2+1)
     u_exact = lambda x,y : (-x**2+1)*(-y**2+1)
     #Defining number of nodes: Np=mx*my
-    mx = 15
-    my = 13
-    #Creating square domain
+    mx = 13
+    my = 12
+#Creating square domain
     xmin = -1
     xmax = 1
     ymin = -1
     ymax = 1
     x = np.linspace(xmin,xmax,mx)
     y = np.linspace(ymin,ymax,my)
-    #Create a grid (similar to cartesian product)
+#Create a grid (similar to cartesian product)
     X,Y = np.meshgrid(x,y)
     X,Y = X.flatten(), Y.flatten()
     points= np.dstack((X,Y)).reshape(-1, 2)
     print("Defining triangulation...")
-    #Creating a Delaunay triangulation with the points
+#Creating a Delaunay triangulation with the points
     tri = Delaunay(points)
     print("Constructing stiffness matrix and load vector")
     A_stiff_mat, b_load_vec = assemble_stiffness_matrix_load_vector(tri,f)
     A_stiff_mat = A_stiff_mat.toarray()
-    #print(A_stiff_mat)
-    #print(np.linalg.inv(A_stiff_mat))
-    #print(b_load_vec)
-    def is_pos_def(A):
-        if np.allclose(A, A.T):
-            try:
-                np.linalg.cholesky(A)
-                return True
-            except np.linalg.LinAlgError:
-                print("Not PD")
-                return False
-        else:
-            print("Not symmetric")
-            return False
-    print(is_pos_def(A_stiff_mat))
+
+    # Find edges at the boundary
+    boundary = set()
+    for i in range(len(tri.neighbors)):
+        for k in range(3):
+            if (tri.neighbors[i][k] == -1):
+                nk1,nk2 = (k+1)%3, (k+2)%3 
+                boundary.add(tri.simplices[i][nk1])
+                boundary.add(tri.simplices[i][nk2])
+    #Imposing homogeneous Dirichlet BCs
+    for i in boundary:
+        A_stiff_mat[i,:] = 0.
+        A_stiff_mat[:,i] = 0.
+        A_stiff_mat[i,i] = 1.
+        b_load_vec[i] = 0.    
     u_FE = np.linalg.solve(A_stiff_mat,b_load_vec)
     print("Plotting results")
     #plot(X,Y,tri,Z=u_exact(X,Y))
-    plot(X,Y,tri,u_FE)
+    plot(X,Y,tri,u_exact(X,Y),u_FE)
 
     return 0
 
@@ -97,21 +98,20 @@ def assemble_stiffness_matrix_load_vector(tri,f):
                 
     return A_stiff_mat, b_load_vec
 
-def assemble_load_vector(tri,f):
-    return f
-
-def plot(X,Y,tri,Z):
+def plot(X,Y,tri,u_exact,u_FE):
     import matplotlib.pyplot as plt
     from matplotlib import gridspec
 
-    fig =plt.figure(figsize=(12,6))
-    gs = gridspec.GridSpec(1, 2, width_ratios=[1, 1.5]) 
+    #fig, axs =plt.subplots(nrows=1,ncols=3)#,figsize=(12,6))
+    fig = plt.figure()
+    #gs = gridspec.GridSpec(nrows=1,ncols=3)  #width_ratios=[1, 1.5,]
     ######################
     #Plotting triangulation
     ######################
-    ax2d = fig.add_subplot(gs[0])
-    ax2d.triplot(X, Y, tri.simplices)
-    ax2d.plot(X, Y, 'o')
+    axs = []
+    axs.append(fig.add_subplot(131))
+    axs[0].triplot(X, Y, tri.simplices)
+    axs[0].plot(X, Y, 'o')
     
     ###################################################
     #Plotting a surface over domain using triangulation
@@ -119,11 +119,22 @@ def plot(X,Y,tri,Z):
     import matplotlib.tri as mtri
     #Constructing an object to plot triangulation
     plt_triang=mtri.Triangulation(x=X,y=Y,triangles=tri.simplices)
-    ax3d = fig.add_subplot(gs[1],projection='3d')
+    axs.append(fig.add_subplot(132,projection='3d'))
     #ax=plt.axes(projection='3d')
-    ax3d.plot_trisurf(X,Y,Z,triangles=plt_triang.triangles, cmap=plt.cm.winter)
-    plt.tight_layout()
+    axs[1].plot_trisurf(X,Y,u_exact,triangles=plt_triang.triangles, cmap=plt.cm.winter)
+    
+    ###################################################
+    #Plotting a surface over domain using triangulation
+    ###################################################
+    #Constructing an object to plot triangulation
+    axs.append(fig.add_subplot(133,projection='3d'))
+    #ax=plt.axes(projection='3d')
+    axs[2].plot_trisurf(X,Y,u_FE,triangles=plt_triang.triangles, cmap=plt.cm.winter)
+    #plt.tight_layout()
     plt.show()
+
+
+
 
 if __name__=="__main__":
    main() 
