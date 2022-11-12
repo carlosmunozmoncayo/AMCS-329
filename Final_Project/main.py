@@ -8,8 +8,10 @@ def main():
     #Setting parameters
     print("Defining domain...")
     #RHS function
-    f = lambda x,y : -2*(x**2+y**2-2) #RHS of problem with sol. (-x**2+1)*(-y**2+1)
-    u_exact = lambda x,y : (-x**2+1)*(-y**2+1)
+    #f = lambda x,y : -2*(x**2+y**2-2) #RHS of problem with sol. (-x**2+1)*(-y**2+1)
+    #u_exact = lambda x,y : (-x**2+1)*(-y**2+1)
+    u_exact = lambda x,y, : np.sin(x*np.pi)*np.sin(y*np.pi)
+    f = lambda x,y : 2*np.pi**2*u_exact(x,y)
     #Defining number of nodes: Np=mx*my
     mx = 13
     my = 12
@@ -104,33 +106,42 @@ def plot(X,Y,tri,u_exact,u_FE):
 
     #fig, axs =plt.subplots(nrows=1,ncols=3)#,figsize=(12,6))
     fig = plt.figure()
-    #gs = gridspec.GridSpec(nrows=1,ncols=3)  #width_ratios=[1, 1.5,]
-    ######################
-    #Plotting triangulation
-    ######################
     axs = []
-    axs.append(fig.add_subplot(131))
-    axs[0].triplot(X, Y, tri.simplices)
-    axs[0].plot(X, Y, 'o')
-    
-    ###################################################
-    #Plotting a surface over domain using triangulation
-    ###################################################
+    #gs = gridspec.GridSpec(nrows=1,ncols=3)  #width_ratios=[1, 1.5,]
+
     import matplotlib.tri as mtri
     #Constructing an object to plot triangulation
     plt_triang=mtri.Triangulation(x=X,y=Y,triangles=tri.simplices)
-    axs.append(fig.add_subplot(132,projection='3d'))
-    #ax=plt.axes(projection='3d')
-    axs[1].plot_trisurf(X,Y,u_exact,triangles=plt_triang.triangles, cmap=plt.cm.winter)
-    
+        
     ###################################################
     #Plotting a surface over domain using triangulation
     ###################################################
     #Constructing an object to plot triangulation
-    axs.append(fig.add_subplot(133,projection='3d'))
+    axs.append(fig.add_subplot(221,projection='3d'))
     #ax=plt.axes(projection='3d')
-    axs[2].plot_trisurf(X,Y,u_FE,triangles=plt_triang.triangles, cmap=plt.cm.winter)
-    #plt.tight_layout()
+    axs[0].plot_trisurf(X,Y,u_FE,triangles=plt_triang.triangles, cmap=plt.cm.winter)
+    axs[0].set_title('FE solution')
+
+    ###################################################
+    #Plotting a exact solution over domain using triangulation
+    ###################################################
+    axs.append(fig.add_subplot(222,projection='3d'))
+    #ax=plt.axes(projection='3d')
+    axs[1].plot_trisurf(X,Y,u_exact,triangles=plt_triang.triangles, cmap=plt.cm.winter)
+    axs[1].set_title('Exact solution')
+
+
+    ######################
+    #Plotting triangulation
+    ######################
+    
+    axs.append(fig.add_subplot(223))
+    axs[2].triplot(X, Y, tri.simplices)
+    axs[2].plot(X, Y, 'r.')
+    axs[2].axis('scaled')
+    axs[2].set_title('Triangulation and DOF')
+
+    plt.tight_layout()
     plt.show()
 
 
