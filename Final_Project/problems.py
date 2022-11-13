@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def get_Dirichlet_problem(num):
     if num == 1 :
         a=1

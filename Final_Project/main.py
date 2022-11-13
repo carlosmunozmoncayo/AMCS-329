@@ -1,10 +1,18 @@
-import numpy as np
-from scipy.spatial import Delaunay
-from scipy.sparse import dok_matrix
-from problems import get_Dirichlet_problem
-from assemble import assemble_stiffness_matrix_load_vector
 #Use the finite element method to solve the 2d Poisson problem lambda(u)=-f in omega and u=g in \partial{Omega}
 #For the moment considering P1 elements 
+
+
+##################
+# External libraries
+##################
+import numpy as np
+from scipy.spatial import Delaunay #To get triangulation
+
+##################
+# My libraries
+##################
+from problems import get_Dirichlet_problem
+from assemble import assemble_stiffness_matrix_load_vector
 
 def main(problem='Dirichlet', prob_type=1, plot_exact='no_tri', plot_line=True):
     from plot import plot
@@ -58,7 +66,6 @@ def main(problem='Dirichlet', prob_type=1, plot_exact='no_tri', plot_line=True):
     plot(X,Y,tri,u_exact,u_FE,g, plot_exact,plot_line)
 
     return 0
-
 
 
 

@@ -28,8 +28,6 @@ def plot(X,Y,tri,u_exact,u_FE,g,plot_exact,plot_line):
     ymax = Y[-1]
 
 
-
-        
     ###################################################
     #Plotting a surface over domain using triangulation
     ###################################################
@@ -47,7 +45,6 @@ def plot(X,Y,tri,u_exact,u_FE,g,plot_exact,plot_line):
             axs[0].plot(X1[i,:],Y1[i,:],g(X1[i,:],Y1[i,:]),color='k',lw=4)
             axs[0].plot(X1[:,i],Y1[:,i],g(X1[:,i],Y1[:,i]),color='k',lw=4) 
     axs[0].set_title('FE solution')
-
 
 
     ###################################################
