@@ -62,7 +62,8 @@ def get_row_vandermonde_matrix(point,poly_order):
 
 
 
-
+#A nice reference I am using
+#http://femwiki.wikidot.com/elements:lagrange-elements
 if __name__=="__main__":
     #print(Vandermonde_matrix(DOF=[(0,0),(1,0),(0,1),(.5,0),(.5,.5),(0,.5)],poly_order=1))
     print(get_coefficients_Lagrange_basis(poly_order=2))
