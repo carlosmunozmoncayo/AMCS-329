@@ -32,7 +32,7 @@ def get_edges_DOF(triangulation, points, k):
                 x,y = points[i], points[j]
                 for lamb in coeffs:
                     DOF_on_edges.append(lamb*x+(1-lamb)*y)
-    return DOF_on_edges
+    return np.array(DOF_on_edges)
 
 def get_inner_DOF(triangulation, points, DOF_ref_inner):
     DOF_inner = []
@@ -40,7 +40,7 @@ def get_inner_DOF(triangulation, points, DOF_ref_inner):
         A,b,_,_,_ = pull_back_forward(triangle,points)
         for x in DOF_ref_inner:
             DOF_inner.append(A@x+b)
-    return np.array(DOF_inner)
+    return np.array(DOF_inner) #Need to return also indexes as required by the class I created
 
 def get_all_DOF_reference(poly_degree):
     #Get all the degrees of freedom in the reference triangle
@@ -60,7 +60,7 @@ def get_all_DOF_reference(poly_degree):
             if x>0. and y >0. and y+x<.9999 :
                 DOF_reference_inner.append((x,y))
         x = -delta
-    return np.array(DOF_reference), np.array(DOF_reference_inner)
+    return np.array(DOF_reference), np.array(DOF_reference_inner) #Need to return also edge points as required by the class I created
 
         
 
