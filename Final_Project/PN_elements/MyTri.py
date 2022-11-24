@@ -24,6 +24,21 @@ class MyTri:
         self.interior = interior_index+self.nvertices
         self.edges = []
 
+        self.affine_list = []
+
+    def fill_affine_list():
+
     def fill_edges_DOF(DOF_edges_reference):
-        
+        #Requires affine_list to be already full
+        for i in range(nvertices):
+            edge_indexes = []
+            affine = self.affine_list[i]
+            for xt in DOF_edges_reference:
+                x = affine.A@xt +affine.b
+                j = THIS DOES NOT EXIST YET #get index of x in edges_points
+                edge_indexes.append(j)
+            self.edges.append(edge_indexes)
+        self.edges = np.array(self.edges,dtype=int)+selft.nvertices+self.ninterior
+
+
         
