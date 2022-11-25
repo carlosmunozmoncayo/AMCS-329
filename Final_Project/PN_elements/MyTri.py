@@ -13,32 +13,46 @@ class MyTri:
                  vertices_index, vertices_points,
                  interior_index, interior_points, 
                  edges_points):
-        #To store the DOF
+        #To store the DOF, this is just a list of np.arrays
         self.global_DOF = list(vertices_points)+list(interior_points)+list(edges_points)
+        #self.global_DOF = [np.array(x) for x in self.global_DOF] Maybe not necessary
 
-        self.nvertices = len(vertices_points) #Number of DOF in vertices
-        self.ninterior = len(interior_points) #Number of interior DOF
-        self.nedges = len(edges_points)    #Number of DOF on edges
+        self.vertices_points = vertices_points #Number of DOF in vertices
+        self.interior_points = interior_points #Number of interior DOF
+        self.edges_points    = edges_points    #Number of DOF on edges
 
-        self.vertices = np.copy(vertices)
-        self.interior = interior_index+self.nvertices
-        self.edges = []
+        #List indexes of points in global DOF
+        self.vertices = np.copy(vertices_index) 
+        self.interior = interior_index+len(self.vertices_points)
+        self.edges = [] #Don't forget to convert to np array
 
         self.affine_list = []
 
-    def fill_affine_list():
+    def fill_affine_list(self):
+        for i in range(len(self.vertices)):
+            #Getting indexes
+            #I cannot do x1,x2,x3 = self.global_DOF[self.vertices[i]]
+            a,b,c = self.vertices[i]
+            #Getting points
+            x1,x2,x3 = self.global_DOF[a], self.global_DOF[b], self.global_DOF[c]
+            self.affine_list.append(affine_mapping(x1,x2,x3))
 
-    def fill_edges_DOF(DOF_edges_reference):
+    def fill_edges_DOF(self, DOF_edges_reference):
         #Requires affine_list to be already full
-        for i in range(nvertices):
+        for i in range(len(self.vertices)):
             edge_indexes = []
             affine = self.affine_list[i]
             for xt in DOF_edges_reference:
                 x = affine.A@xt +affine.b
-                j = THIS DOES NOT EXIST YET #get index of x in edges_points
+                j = self.get_index_in_edge_points(x) #get index of x in edges_points
                 edge_indexes.append(j)
             self.edges.append(edge_indexes)
-        self.edges = np.array(self.edges,dtype=int)+selft.nvertices+self.ninterior
+        self.edges = np.array(self.edges,dtype=int)+len(self.vertices_points)+len(self.interior_points)
+
+    def get_index_in_edge_points(self, x):
+        distances = np.array([np.linalg.norm(point-x) for point in self.edges_points])
+        return np.argmin(distances)
+
 
 
         

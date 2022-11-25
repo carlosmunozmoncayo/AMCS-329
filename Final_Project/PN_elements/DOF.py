@@ -35,21 +35,34 @@ def get_edges_DOF(triangulation, points, k):
     return np.array(DOF_on_edges)
 
 def get_inner_DOF(triangulation, points, DOF_ref_inner):
+    ######################
+    #Returns a list of all DOF that are interior points
+    #and a list of lists of indexes that indicate to which triangle each
+    #interior DOF belongs
+    ######################
     DOF_inner = []
+    interior_index = []
+    i = 0
     for triangle in triangulation.simplices:
+        triangle_indexes = []
         A,b,_,_,_ = pull_back_forward(triangle,points)
         for x in DOF_ref_inner:
             DOF_inner.append(A@x+b)
-    return np.array(DOF_inner) #Need to return also indexes as required by the class I created
+            triangle_indexes.append(i)
+            i+=1
+        interior_index.append(triangle_indexes)
+    return np.array(DOF_inner), np.array(interior_index, dtype=int) 
 
 def get_all_DOF_reference(poly_degree):
     #Get all the degrees of freedom in the reference triangle
     #Also returns just the inner points for practical purposes
     ##########################################################
-
+    tol = 1.e-5
     #Adding horizontal and vertical points
     DOF_reference = []
     DOF_reference_inner = []
+    DOF_reference_edges = []
+    DOF_reference_vertices = []
     delta = 1./poly_degree
     x,y = -delta, -delta
     for iy in range(poly_degree+1):
@@ -57,11 +70,17 @@ def get_all_DOF_reference(poly_degree):
         for jx in range(poly_degree+1-iy):
             x += delta
             DOF_reference.append((x,y))
-            if x>0. and y >0. and y+x<.9999 :
+            if x>tol and y >tol and y+x<(1-tol) :
                 DOF_reference_inner.append((x,y))
+            elif np.allclose([0.,0.],[x,y]) or np.allclose([0.,1.],[x,y]) or np.allclose([1.,0.],[x,y]) :
+                DOF_reference_vertices.append((x,y))
+            else:
+                DOF_reference_edges.append((x,y))
         x = -delta
-    return np.array(DOF_reference), np.array(DOF_reference_inner) #Need to return also edge points as required by the class I created
-
+    return (np.array(DOF_reference),
+            np.array(DOF_reference_inner),
+            np.array(DOF_reference_edges),
+            np.array(DOF_reference_vertices))
         
 
     
