@@ -25,17 +25,33 @@ class MyTri:
         self.vertices = np.copy(vertices_index) 
         self.interior = interior_index+len(self.vertices_points)
         self.edges = [] #Don't forget to convert to np array
+        
+        #List of affine mappings
+        self.affine_list = self.fill_affine_list()
 
-        self.affine_list = []
+        #List of DOF in reference triangle
+        self.DOF_ref_triangle = []
+
+        #Lists to construct nodal basis at DOF in reference triangle
+        self.coeffs_phi_ref_triangle = [] #[[a0,a1,a2,...],[a0,a1,a2,...],...]
+        self.exponent_phi  = [] #[[(ex0, ey0), (ex1,ey1),...],[(ex0, ey0), (ex1,ey1),...],...]
+        #each element of the nodal basis will have the form:
+        #phi(x,y) = sum(i) ai*(x^exi)*(y^eyi)
+
+        #List of coefficients gradients for nodal basis at DOF in reference triangle
+        self.coeffs_grad_phi_ref_triangle = [] #[[a0,a1,a2,...],[a0,a1,a2,...],...]
+        self.exponent_phi  = [] #[[(ex0, ey0), (ex1,ey1),...],[(ex0, ey0), (ex1,ey1),...],...]
 
     def fill_affine_list(self):
         for i in range(len(self.vertices)):
+            affine_list = []
             #Getting indexes
             #I cannot do x1,x2,x3 = self.global_DOF[self.vertices[i]]
             a,b,c = self.vertices[i]
             #Getting points
             x1,x2,x3 = self.global_DOF[a], self.global_DOF[b], self.global_DOF[c]
-            self.affine_list.append(affine_mapping(x1,x2,x3))
+            affine_list.append(affine_mapping(x1,x2,x3))
+            return affine_list
 
     def fill_edges_DOF(self, DOF_edges_reference):
         #Requires affine_list to be already full
