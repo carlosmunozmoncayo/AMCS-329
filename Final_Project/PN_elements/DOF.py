@@ -57,7 +57,7 @@ def get_all_DOF_reference(poly_degree):
     #Get all the degrees of freedom in the reference triangle
     #Also returns just the inner points for practical purposes
     ##########################################################
-    tol = 1.e-5
+    tol = 1.e-6
     #Adding horizontal and vertical points
     DOF_reference = []
     DOF_reference_inner = []
