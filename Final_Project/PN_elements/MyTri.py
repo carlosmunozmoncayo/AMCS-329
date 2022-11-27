@@ -90,7 +90,7 @@ class MyTri:
             return 0
         for i in range(len(self.vertices)):
             #Getting all the DOF for this triangle
-            DOF_triangle = np.concatenate((self.global_DOF[self.vertices[i]],self.global_DOF[self.edges[i]],self.global_DOF[self.interior[i]]))
+            DOF_triangle = np.concatenate((self.global_DOF[self.vertices[i]],self.global_DOF[self.interior[i]],self.global_DOF[self.edges[i]]))
             #This is done in a simple setting in one of the Jupyter notebooks (Checking_Lagrange_basis)
             coeffs,_ = get_coefficients_Lagrange_basis(poly_degree=poly_degree, DOF=DOF_triangle, reference_tri=False)
             coeffs_dx,exps_dx, coeffs_dy,exps_dy = get_coefficients_grad_phi(poly_degree=poly_degree)
