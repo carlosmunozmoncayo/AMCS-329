@@ -1,12 +1,18 @@
 import numpy as np
 from scipy.spatial import Delaunay #To get triangulation
 from pull_back import fast_pull_back
+from lagrange_basis import set_phi, set_grad_phi
 
 
 
 class affine_mapping:
     def __init__(self, x1,x2,x3):
         self.A, self.b, self.A_inv, self.detA, self.detA_inv = fast_pull_back(x1,x2,x3)
+
+class shape_function:
+    def __init__(self,coeffs,exps,coeffs_dx,exps_dx, coeffs_dy,exps_dy):
+        self.phi = set_phi(coeffs,exps)
+        self.grad_phi = set_grad_phi(coeffs,exps,coeffs_dx,exps_dx, coeffs_dy,exps_dy)
 
 class MyTri:
     def __init__(self, 
@@ -42,6 +48,13 @@ class MyTri:
         self.coeffs_grad_phi_ref_triangle = [] #[[a0,a1,a2,...],[a0,a1,a2,...],...]
         self.exponents_grad_phi  = [] #[[(ex0, ey0), (ex1,ey1),...],[(ex0, ey0), (ex1,ey1),...],...]
 
+
+        #List of lists of shape_functions objects [[sf,sf,sf...],[sf,sf,sf,...],...]
+        #Each list contains the shape_function object corresponding to its degrees of freedom
+        #Using the indexing [vertices, interior, edges]
+        self.list_shape_functions = []
+
+
     def fill_affine_list(self):
         if (len(self.affine_list)) == 0:
             for i in range(len(self.vertices)):
@@ -70,6 +83,24 @@ class MyTri:
     def get_index_in_edge_points(self, x):
         distances = np.array([np.linalg.norm(point-x) for point in self.edges_points])
         return np.argmin(distances)
+
+    def fill_shape_function_list(self, poly_degree):
+        for i in range(len(mytri.vertices)):
+            #Getting all the DOF for this triangle
+            DOF_triangle = np.concatenate((DOF[self.vertices[i]],DOF[self.edges[i]],DOF[self.interior[i]]))
+            #This is done in a simple setting in one of the Jupyter notebooks (Checking_Lagrange_basis)
+            coeffs,_ = get_coefficients_Lagrange_basis(poly_degree=poly_degree, DOF=DOF, reference_tri=False)
+            coeffs_dx,exps_dx, coeffs_dy,exps_dy = get_coefficients_grad_phi(poly_degree=poly_degree)
+            exps = get_exponents(poly_degree=poly_degree)
+            
+            #Local list of shape functions
+            local_list_sp = []
+            
+            for coeff_row in coeffs:
+                local_list_sp.append(shape_function(coeff_row,exps,coeffs_dx,exps_dx, coeffs_dy,exps_dy))
+            self.list_shape_functions.append(local_list_sp)
+
+                
 
 
 
