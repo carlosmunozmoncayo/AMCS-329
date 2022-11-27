@@ -4,9 +4,38 @@ from DOF import get_all_DOF_reference
 # Computing Lagrange basis
 #########################
 
+#########################
+#Main functions
+#########################
+def set_phi(coeffs,exps):
+    #Input: coefficients (e.g., a row of get_coefficients_Lagrange_basis)
+    #       and exponents (e.g., the first output of get_exponents) for a polynomial function
+    #Output: A polynomial function that can be evaluated at a point (x,y) in R2
+    def phi(p):
+        x = p[0]**exps[:,0]
+        y = p[1]**exps[:,1]
+        s = np.sum(coeffs*x*y) 
+        return(s)
+    return phi
+
+def set_grad_phi(coeffs,exps,coeffs_dx,exps_dx, coeffs_dy,exps_dy):
+    def grad_phi(p):
+        xdx = p[0]**exps_dx
+        ydx = p[1]**exps[:,1]
+        
+        xdy = p[0]**exps[:,0]
+        ydy = p[1]**exps_dy
+        return np.array([np.sum(coeffs*coeffs_dx*xdx*ydx),np.sum(coeffs*coeffs_dy*xdy*ydy)])
+    return grad_phi
+
+
+
+#######################
+#Auxiliary functions 1
+#######################
 def get_coefficients_Lagrange_basis(poly_degree=1, DOF=[(0,0),(1,0),(0,1)], reference_tri=True):
     if reference_tri: #and poly_degree>1:
-        DOF = get_all_DOF_reference(poly_degree)
+        DOF = get_all_DOF_reference(poly_degree)[0]
     
     A = Vandermonde_matrix(DOF, poly_degree)
     #The ith row of alpha will contain the coefficients of the 
@@ -23,38 +52,16 @@ def get_coefficients_Lagrange_basis(poly_degree=1, DOF=[(0,0),(1,0),(0,1)], refe
         alpha.append(np.linalg.solve(A,b))
     return np.array(alpha), DOF
 
-def Vandermonde_matrix(DOF, poly_degree):
-    #Computes Vandermonde matrix given degrees of freedom
-    #for single triangle
-    
-    #Check if we have enough degrees of freedom
-    n_DOF = len(DOF)
-    n_coeffs =  np.sum(range(1,poly_degree+2))
-    if n_DOF == n_coeffs:
-        A = np.zeros((n_DOF,n_DOF))
-        for i in range(n_DOF):
-            A[i,:] = get_row_vandermonde_matrix(DOF[i],poly_degree)
-    else:
-        raise ValueError(f"Not enough or too much DOF ({n_DOF}) for Lagrange basis of degree: {poly_degree}. {n_coeffs} DOF needed")
-    return A
-
-def get_row_vandermonde_matrix(point, poly_degree):
-    #Gives back a Vandermonde row, i.e. 1 x y x^2 xy y^2 x^3 x^2y xy^2 y^3 ...
-    x,y = point[0],point[1]
-    row_vandermonde = [1.]
-    for sub_degree in range(1,poly_degree+1):
-        #Adding terms of degree=sub_degree to Vandermonde row
-        for k in range(sub_degree+1):
-            row_vandermonde.append(x**(sub_degree-k)*y**(k))
-    return np.array(row_vandermonde)
-
 def get_exponents(poly_degree):
     #Gives back a Vandermonde row, i.e. 1 x y x^2 xy y^2 x^3 x^2y xy^2 y^3 ...
     exponents = [(0,0)]
+    exponentsdx = [(0,0)]
+    exponentsdy = [(0,0)]
     for sub_degree in range(1,poly_degree+1):
         #Adding terms of degree=sub_degree to Vandermonde row
         for k in range(sub_degree+1):
             exponents.append((sub_degree-k,k))
+    exponents = np.array(exponents)
     return np.array(exponents) 
 
 def get_coefficients_grad_phi(poly_degree):
@@ -81,14 +88,42 @@ def get_coefficients_grad_phi(poly_degree):
             coeffs_partial_y[i] = k
             i+=1
 
-
+    #The exponents of x in phi_x
     exponents_x = np.where(coeffs_partial_x>0,coeffs_partial_x-1,0)
+    #The exponents of y in phi_y
     exponents_y = np.where(coeffs_partial_y>0,coeffs_partial_y-1,0)
 
     return coeffs_partial_x, exponents_x, coeffs_partial_y, exponents_y
 
 
 
+#######################
+#Auxiliary functions 2
+#######################
+def Vandermonde_matrix(DOF, poly_degree):
+    #Computes Vandermonde matrix given degrees of freedom
+    #for single triangle
+    
+    #Check if we have enough degrees of freedom
+    n_DOF = len(DOF)
+    n_coeffs =  np.sum(range(1,poly_degree+2))
+    if n_DOF == n_coeffs:
+        A = np.zeros((n_DOF,n_DOF))
+        for i in range(n_DOF):
+            A[i,:] = get_row_vandermonde_matrix(DOF[i],poly_degree)
+    else:
+        raise ValueError(f"Not enough or too much DOF ({n_DOF}) for Lagrange basis of degree: {poly_degree}. {n_coeffs} DOF needed")
+    return A
+
+def get_row_vandermonde_matrix(point, poly_degree):
+    #Gives back a Vandermonde row, i.e. 1 x y x^2 xy y^2 x^3 x^2y xy^2 y^3 ...
+    x,y = point[0],point[1]
+    row_vandermonde = [1.]
+    for sub_degree in range(1,poly_degree+1):
+        #Adding terms of degree=sub_degree to Vandermonde row
+        for k in range(sub_degree+1):
+            row_vandermonde.append(x**(sub_degree-k)*y**(k))
+    return np.array(row_vandermonde)
 
 
 #A nice reference I am using
