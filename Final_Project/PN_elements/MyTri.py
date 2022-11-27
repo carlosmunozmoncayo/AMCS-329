@@ -86,7 +86,7 @@ class MyTri:
         return np.argmin(distances)
 
     def fill_shape_function_list(self, poly_degree):
-        if len(self.list_shape_functions):
+        if len(self.list_shape_functions)>0:
             return 0
         for i in range(len(self.vertices)):
             #Getting all the DOF for this triangle
