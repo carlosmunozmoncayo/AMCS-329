@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.spatial import Delaunay #To get triangulation
 from pull_back import fast_pull_back
-from lagrange_basis import set_phi, set_grad_phi
+from lagrange_basis import set_phi, set_grad_phi,\
+        get_coefficients_Lagrange_basis, get_coefficients_grad_phi, get_exponents
 
 
 
@@ -85,11 +86,13 @@ class MyTri:
         return np.argmin(distances)
 
     def fill_shape_function_list(self, poly_degree):
-        for i in range(len(mytri.vertices)):
+        if len(self.list_shape_functions):
+            return 0
+        for i in range(len(self.vertices)):
             #Getting all the DOF for this triangle
-            DOF_triangle = np.concatenate((DOF[self.vertices[i]],DOF[self.edges[i]],DOF[self.interior[i]]))
+            DOF_triangle = np.concatenate((self.global_DOF[self.vertices[i]],self.global_DOF[self.edges[i]],self.global_DOF[self.interior[i]]))
             #This is done in a simple setting in one of the Jupyter notebooks (Checking_Lagrange_basis)
-            coeffs,_ = get_coefficients_Lagrange_basis(poly_degree=poly_degree, DOF=DOF, reference_tri=False)
+            coeffs,_ = get_coefficients_Lagrange_basis(poly_degree=poly_degree, DOF=DOF_triangle, reference_tri=False)
             coeffs_dx,exps_dx, coeffs_dy,exps_dy = get_coefficients_grad_phi(poly_degree=poly_degree)
             exps = get_exponents(poly_degree=poly_degree)
             
