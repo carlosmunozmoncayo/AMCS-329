@@ -56,6 +56,10 @@ class MyTri:
         self.list_shape_functions = []
 
 
+        #List of boundary indexes wrt to global_DOF
+        self.boundary_indexes = []
+
+
     def fill_affine_list(self):
         if (len(self.affine_list)) == 0:
             for i in range(len(self.vertices)):
@@ -102,6 +106,34 @@ class MyTri:
             for coeff_row in coeffs:
                 local_list_sp.append(shape_function(coeff_row,exps,coeffs_dx,exps_dx, coeffs_dy,exps_dy))
             self.list_shape_functions.append(local_list_sp)
+
+    def get_boundary_indexes(self, scipy_tri, poly_degree):
+        if len(self.boundary_indexes) >0:
+            return 0
+        # Find edges at the boundary
+        boundary_indexes = set()
+        points_edges_on_boundary = [] #points that are not vertices
+        for i in range(len(scipy_tri.neighbors)):
+            for k in range(3):
+                if (scipy_tri.neighbors[i][k] == -1):
+                    nk1,nk2 = (k+1)%3, (k+2)%3
+                    index1=scipy_tri.simplices[i][nk1]
+                    index2=scipy_tri.simplices[i][nk2]
+                    boundary_indexes.add(index1)
+                    boundary_indexes.add(index2)
+                    x = self.vertices_points[index1]
+                    y = self.vertices_points[index2]
+                    coeffs = np.linspace(0., 1., poly_degree+1)[1:-1]
+                    for lamb in coeffs:
+                        points_edges_on_boundary.append(lamb*x+(1-lamb)*y)
+        #We already have the indexes of the boundary vertices, now we have to get
+        #the indexes (wrt to global_DOF) of the edge boundary points
+        n = len(self.vertices_points)+len(self.interior_points)
+        for point in points_edges_on_boundary:
+            index_edge_points = self.get_index_in_edge_points(point)
+            boundary_indexes.add(index_edge_points+n) 
+
+        self.boundary_indexes = np.array(list(boundary_indexes))
 
                 
 
